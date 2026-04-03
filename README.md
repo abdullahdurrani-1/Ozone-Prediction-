@@ -24,11 +24,11 @@ It also includes a web dashboard (`index.html`, `dashboard.html`) and Docker sup
 
 ## Visual workflow
 
-### Prediction pipeline (animated)
+### Prediction pipeline 
 
 ![Prediction Workflow](assets/workflow-animated.svg)
 
-### MLOps lifecycle (animated)
+### MLOps lifecycle
 
 ![MLOps Lifecycle](assets/mlops-lifecycle-animated.svg)
 
