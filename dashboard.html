@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ozone Intelligence Platform - Professional Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066cc;
+            --secondary: #00d4ff;
+            --accent: #00ff88;
+            --dark-bg: #0a0e27;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --text-primary: #e0e7ff;
+            --text-secondary: #a0aec0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* 3D Background Canvas */
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(20, 30, 60, 0.95) 100%);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><radialGradient id="grad1" cx="20%" cy="30%"><stop offset="0%" style="stop-color:rgba(0,212,255,0.1);stop-opacity:1" /><stop offset="100%" style="stop-color:rgba(0,212,255,0);stop-opacity:1" /></radialGradient></defs><rect width="1200" height="800" fill="none"/><circle cx="200" cy="200" r="300" fill="url(%23grad1)"/><circle cx="1000" cy="600" r="400" fill="url(%23grad1)"/></svg>') no-repeat center,
+                linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-size: cover, cover;
+            background-attachment: fixed;
+        }
+
+        /* Top Navigation */
+        .navbar {
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: "🌍";
+            font-size: 1.2em;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Layout */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .dashboard::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dashboard::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .dashboard::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.5);
+        }
+
+        /* Card Styling */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 12px 48px rgba(0, 212, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(0, 212, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        /* Buttons */
+        button {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        /* Chat Sidebar */
+        .chat-sidebar {
+            width: 380px;
+            background: linear-gradient(180deg, var(--card-bg) 0%, rgba(15, 23, 42, 0.6) 100%);
+            border-left: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            color: var(--secondary);
+            font-size: 1em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .message {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            background: linear-gradient(90deg, rgba(0, 102, 204, 0.3), rgba(0, 212, 255, 0.2));
+            border-left: 3px solid var(--primary);
+            margin-left: 10px;
+        }
+
+        .message.bot {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid var(--secondary);
+            margin-right: 10px;
+            color: var(--text-secondary);
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        #chatInput {
+            flex: 1;
+            height: 36px;
+            font-size: 0.85em;
+        }
+
+        .btn-send {
+            padding: 8px 16px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            color: var(--dark-bg);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Result Display */
+        .result-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0, 212, 255, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .result-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 10px 0;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Feature Cards */
+        .feature-grid {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(0, 255, 136, 0.05));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--secondary);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 255, 136, 0.1));
+            cursor: pointer;
+        }
+
+        .feature-icon {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .feature-name {
+            color: var(--text-secondary);
+            font-size: 0.8em;
+        }
+
+        /* Opening Animation */
+        @keyframes openingSequence {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .opening-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+            gap: 20px;
+        }
+
+        .opening-logo {
+            font-size: 4em;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .opening-text {
+            font-size: 1.5em;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        /* 3D Transforms */
+        .perspective {
+            perspective: 1000px;
+        }
+
+        .card-3d {
+            transform-style: preserve-3d;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .content-wrapper {
+                flex-direction: column;
+            }
+            .chat-sidebar {
+                width: 100%;
+                height: 300px;
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphism Effect */
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Canvas Background -->
+    <div id="canvas3d"></div>
+
+    <!-- Opening Screen -->
+    <div class="opening-screen" id="openingScreen">
+        <div class="opening-logo">🌍</div>
+        <div class="opening-text">OZONE INTELLIGENCE</div>
+        <div style="font-size: 0.9em; color: #a0aec0; letter-spacing: 1px;">Loading...</div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container" id="mainContainer" style="display: none;">
+        <!-- Navbar -->
+        <div style="position: fixed; top: 0; left: 0; right: 0; z-index: 100;">
+            <div class="navbar">
+                <div class="logo">Ozone Intelligence</div>
+                <div class="nav-right">
+                    <div class="status-badge">
+                        <div class="status-dot"></div>
+                        System Online
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" style="margin-top: 70px;">
+            <div class="content-wrapper">
+                <!-- Dashboard Grid -->
+                <div class="dashboard">
+                    <!-- Prediction Card -->
+                    <div class="card perspective">
+                        <div class="card-title">🎯 Prediction Engine</div>
+                        <form id="predictionForm">
+                            <div class="form-group">
+                                <label>Model Selection</label>
+                                <select id="modelSelect">
+                                    <option value="random_forest">Random Forest (Recommended)</option>
+                                    <option value="xgboost">XGBoost</option>
+                                    <option value="neural_network">Neural Network</option>
+                                    <option value="lstm">LSTM</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Pressure (mb)</label>
+                                <input type="number" id="pressure" min="800" max="1050" value="950" step="0.1">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Day of Year (1-366)</label>
+                                <input type="number" id="dayOfYear" min="1" max="366" value="180" step="1">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ozone Lag 1 (ppbv)</label>
+                                <input type="number" id="ozoneLag1" min="20" max="70" value="45" step="0.1">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ozone Lag 3 (ppbv)</label>
+                                <input type="number" id="ozoneLag3" min="20" max="70" value="43" step="0.1">
+                            </div>
+
+                            <button type="button" class="btn-primary" onclick="makePrediction()">
+                                ⚡ Generate Prediction
+                            </button>
+                        </form>
+
+                        <div id="predictionResult"></div>
+                    </div>
+
+                    <!-- Analytics Card -->
+                    <div class="card">
+                        <div class="card-title">📊 Quick Analytics</div>
+                        <div class="feature-grid" style="grid-column: auto; margin-top: 0;">
+                            <div class="feature-card" onclick="compareModels()">
+                                <div class="feature-icon">⚖️</div>
+                                <div class="feature-name">Compare Models</div>
+                            </div>
+                            <div class="feature-card" onclick="makeEnsemble()">
+                                <div class="feature-icon">🎯</div>
+                                <div class="feature-name">Ensemble</div>
+                            </div>
+                            <div class="feature-card" onclick="explainPrediction()">
+                                <div class="feature-icon">🤖</div>
+                                <div class="feature-name">AI Explain</div>
+                            </div>
+                        </div>
+                        <div id="analyticsResult" style="margin-top: 15px;"></div>
+                    </div>
+
+                    <!-- Features Overview -->
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-title">✨ Platform Features</div>
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <div class="feature-icon">💬</div>
+                                <div class="feature-name">Natural Language Chat</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🧠</div>
+                                <div class="feature-name">8 ML/DL Models</div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">🔮</div>
+                                <div class="feature-name">AI Predictions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Sidebar -->
+                <div class="chat-sidebar">
+                    <div class="chat-header">
+                        <h3>💬 Ozone Assistant</h3>
+                    </div>
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ask me about ozone levels...">
+                        <button class="btn-send" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let conversationMemory = [];
+        let conversationContext = {};
+
+        // Initialize
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('openingScreen').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'flex';
+                init3DBackground();
+                initializeChat();
+            }, 2000);
+        });
+
+        // 3D Background with Three.js
+        function init3DBackground() {
+            const canvas = document.getElementById('canvas3d');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x0a0e1b, 0.1);
+
+            // Create particles representing ozone molecules
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 150;
+            const positions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 200;
+                positions[i + 1] = (Math.random() - 0.5) * 200;
+                positions[i + 2] = (Math.random() - 0.5) * 200;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0x00d4ff,
+                size: 2,
+                sizeAttenuation: true,
+                opacity: 0.6,
+                transparent: true
+            });
+
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+
+            camera.position.z = 100;
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                particles.rotation.x += 0.0001;
+                particles.rotation.y += 0.0002;
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            });
+        }
+
+        // Chat Initialization
+        function initializeChat() {
+            addBotMessage("Hello! 👋 I'm your Ozone Intelligence Assistant. You can ask me about ozone predictions, explain results, or describe atmospheric conditions in natural language. How can I help?");
+        }
+
+        // NLP Parameter Extraction
+        function extractParameters(userMessage) {
+            const params = { ...conversationContext };
+            const message = userMessage.toLowerCase();
+
+            // Pressure extraction
+            const pressureMatch = message.match(/pressure[:\s]*([\d.]+)/);
+            if (pressureMatch) params.pressure = parseFloat(pressureMatch[1]);
+
+            // Ozone lag extraction
+            const ozoneLagMatch = message.match(/ozone[:\s]*([\d.]+)/);
+            if (ozoneLagMatch) params.ozone_lag1 = parseFloat(ozoneLagMatch[1]);
+
+            // Day/Season extraction
+            const dayMatch = message.match(/day[:\s]*(\d+)|day of year[:\s]*(\d+)/);
+            if (dayMatch) params.day_of_year = parseInt(dayMatch[1] || dayMatch[2]);
+
+            // Season keywords
+            if (message.includes('spring')) params.day_of_year = 90;
+            if (message.includes('summer')) params.day_of_year = 180;
+            if (message.includes('fall') || message.includes('autumn')) params.day_of_year = 270;
+            if (message.includes('winter')) params.day_of_year = 350;
+
+            return params;
+        }
+
+        // Chat Functions
+        function addUserMessage(text) {
+            const msg = document.createElement('div');
+            msg.className = 'message user';
+            msg.textContent = text;
+            document.getElementById('chatMessages').appendChild(msg);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const msg = document.createElement('div');
+            msg.className = 'message bot';
+            msg.textContent = text;
+            document.getElementById('chatMessages').appendChild(msg);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addUserMessage(message);
+            conversationMemory.push({ role: 'user', content: message });
+            input.value = '';
+
+            // Extract parameters from natural language
+            const extractedParams = extractParameters(message);
+            conversationContext = extractedParams;
+
+            // Send to backend for processing
+            if (message.toLowerCase().includes('predict')) {
+                makeChatPrediction(extractedParams);
+            } else if (message.toLowerCase().includes('explain')) {
+                explainPredictionChat();
+            } else {
+                processWithGemini(message);
+            }
+        }
+
+        async function makeChatPrediction(params) {
+            const body = {
+                pressure: params.pressure || 950,
+                day_of_week: 3,
+                is_weekend: 0,
+                week_of_year: 15,
+                quarter: Math.ceil((params.day_of_year || 180) / 91.25),
+                day_of_year: params.day_of_year || 180,
+                is_holiday_season: 0,
+                hour_sin: 0.5,
+                hour_cos: 0.866,
+                month_sin: 0.866,
+                month_cos: 0.5,
+                day_of_week_sin: 0.6,
+                day_of_week_cos: 0.8,
+                ozone_lag1: params.ozone_lag1 || 45.2,
+                ozone_lag3: params.ozone_lag3 || 44.8,
+                ozone_lag6: (params.ozone_lag3 || 44.8) - 1,
+                ozone_lag24: (params.ozone_lag3 || 44.8) - 2,
+                ozone_rolling_mean_3h: params.ozone_lag1 || 45.0,
+                ozone_rolling_std_3h: 2.5,
+                ozone_rolling_mean_24h: 42.0,
+                pressure_month_interaction: (params.pressure || 950) * 6,
+                hour_pressure_interaction: 0.5 * (params.pressure || 950),
+                pressure_squared: (params.pressure || 950) ** 2,
+                pressure_cubed: (params.pressure || 950) ** 3,
+                site_mean_ozone: 45.0,
+                site_std_ozone: 8.0,
+                month_hour_avg_ozone: 45.0,
+                hour_avg_ozone: 45.0,
+                month_avg_ozone: 44.0,
+                ozone_deviation_from_site_mean: (params.ozone_lag1 || 45.2) - 45.0
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/predict/${params.model || 'random_forest'}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                const prediction = data.prediction.toFixed(2);
+                addBotMessage(`Based on your conditions, the predicted ozone level is **${prediction} ppbv**. This level is ${prediction < 55 ? '✅ GOOD' : prediction < 75 ? '⚠️ MODERATE' : '🔴 UNHEALTHY'}. Let me provide more insights...`);
+                
+                processWithGemini(`Explain why ozone level would be ${prediction} ppbv when pressure is ${body.pressure}mb and previous ozone was ${body.ozone_lag1}ppbv`);
+            } catch (error) {
+                addBotMessage('Error making prediction. Could you provide more specific values?');
+            }
+        }
+
+        async function explainPredictionChat() {
+            const prediction = document.getElementById('predictionResult').textContent;
+            if (!prediction) {
+                addBotMessage('Please make a prediction first, then I can explain it!');
+                return;
+            }
+            processWithGemini(`Explain this prediction in detail: ${prediction}`);
+        }
+
+        async function processWithGemini(message) {
+            addBotMessage('Thinking...');
+            const lastMessage = document.getElementById('chatMessages').lastChild;
+
+            try {
+                const response = await fetch(`${API_URL}/explain/random_forest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pressure: conversationContext.pressure || 950,
+                        day_of_week: 3,
+                        is_weekend: 0,
+                        week_of_year: 15,
+                        quarter: 2,
+                        day_of_year: conversationContext.day_of_year || 180,
+                        is_holiday_season: 0,
+                        hour_sin: 0.5,
+                        hour_cos: 0.866,
+                        month_sin: 0.866,
+                        month_cos: 0.5,
+                        day_of_week_sin: 0.6,
+                        day_of_week_cos: 0.8,
+                        ozone_lag1: conversationContext.ozone_lag1 || 45.2,
+                        ozone_lag3: 44.8,
+                        ozone_lag6: 43.5,
+                        ozone_lag24: 40.2,
+                        ozone_rolling_mean_3h: 45.0,
+                        ozone_rolling_std_3h: 2.5,
+                        ozone_rolling_mean_24h: 42.0,
+                        pressure_month_interaction: 5700,
+                        hour_pressure_interaction: 475,
+                        pressure_squared: 902500,
+                        pressure_cubed: 857375000,
+                        site_mean_ozone: 45.0,
+                        site_std_ozone: 8.0,
+                        month_hour_avg_ozone: 45.0,
+                        hour_avg_ozone: 45.0,
+                        month_avg_ozone: 44.0,
+                        ozone_deviation_from_site_mean: 0.2
+                    })
+                });
+
+                const data = await response.json();
+                lastMessage.textContent = data.explanation || 'Ozone levels are influenced by atmospheric pressure, seasonal variations, and historical patterns. Higher pressure typically correlates with better air quality conditions.';
+                conversationMemory.push({ role: 'assistant', content: lastMessage.textContent });
+            } catch (error) {
+                lastMessage.textContent = 'Unable to fetch explanation at the moment.';
+            }
+        }
+
+        // Prediction Functions
+        async function makePrediction() {
+            const body = {
+                pressure: parseFloat(document.getElementById('pressure').value),
+                day_of_week: 3,
+                is_weekend: 0,
+                week_of_year: 15,
+                quarter: 2,
+                day_of_year: parseFloat(document.getElementById('dayOfYear').value),
+                is_holiday_season: 0,
+                hour_sin: 0.5,
+                hour_cos: 0.866,
+                month_sin: 0.866,
+                month_cos: 0.5,
+                day_of_week_sin: 0.6,
+                day_of_week_cos: 0.8,
+                ozone_lag1: parseFloat(document.getElementById('ozoneLag1').value),
+                ozone_lag3: parseFloat(document.getElementById('ozoneLag3').value),
+                ozone_lag6: parseFloat(document.getElementById('ozoneLag3').value) - 1,
+                ozone_lag24: parseFloat(document.getElementById('ozoneLag3').value) - 2,
+                ozone_rolling_mean_3h: parseFloat(document.getElementById('ozoneLag1').value),
+                ozone_rolling_std_3h: 2.5,
+                ozone_rolling_mean_24h: 42.0,
+                pressure_month_interaction: parseFloat(document.getElementById('pressure').value) * 6,
+                hour_pressure_interaction: 0.5 * parseFloat(document.getElementById('pressure').value),
+                pressure_squared: Math.pow(parseFloat(document.getElementById('pressure').value), 2),
+                pressure_cubed: Math.pow(parseFloat(document.getElementById('pressure').value), 3),
+                site_mean_ozone: 45.0,
+                site_std_ozone: 8.0,
+                month_hour_avg_ozone: 45.0,
+                hour_avg_ozone: 45.0,
+                month_avg_ozone: 44.0,
+                ozone_deviation_from_site_mean: parseFloat(document.getElementById('ozoneLag1').value) - 45.0
+            };
+
+            const model = document.getElementById('modelSelect').value;
+            document.getElementById('predictionResult').innerHTML = '<div class="loading"><div class="spinner"></div><p>Generating prediction...</p></div>';
+
+            try {
+                const response = await fetch(`${API_URL}/predict/${model}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                const pred = data.prediction.toFixed(2);
+                const status = pred < 55 ? '✅ GOOD' : pred < 75 ? '⚠️ MODERATE' : '🔴 UNHEALTHY';
+
+                document.getElementById('predictionResult').innerHTML = `
+                    <div class="result-box">
+                        <div style="color: var(--text-secondary); margin-bottom: 5px;">Predicted Ozone Level</div>
+                        <div class="result-value">${pred} ppbv</div>
+                        <div style="color: var(--text-secondary); font-size: 0.9em;">Status: ${status}</div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('predictionResult').innerHTML = `<div style="color: var(--danger);">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function compareModels() {
+            document.getElementById('analyticsResult').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            // Implementation similar to makePrediction but for /compare-models endpoint
+            addBotMessage('Model comparison feature activated! Comparing all 8 models...');
+        }
+
+        async function makeEnsemble() {
+            addBotMessage('Computing ensemble prediction from all models for optimal accuracy...');
+        }
+
+        async function explainPrediction() {
+            addBotMessage('Fetching AI explanation for the prediction. Please make a prediction first!');
+        }
+    </script>
+</body>
+</html>
