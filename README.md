@@ -222,12 +222,6 @@ Source: [Air Quality Data](https://data.nasa.gov/dataset/?tags=atmosphere)
 Records: 539,808 rows · 1994–2021 · Western North America  
 
 
-## Security and GitHub checklist
-
-- Do not commit real API keys
-- Keep `.env` private (already ignored)
-- Commit only `.env.example` with placeholders
-- Keep large artifacts (models, datasets, logs, notebooks) out of Git unless intentionally versioned
 
 ## License
 
