@@ -201,6 +201,26 @@ docker-compose up -d
 python test_api.py
 python validate_system.py
 ```
+## MOdel Performence
+
+## Performance Results
+
+| Model | Type | R² Score | MAE (ppbv) | RMSE (ppbv) |
+|-------|------|----------|-----------|------------|
+| dummy_baseline | ML | -0.0013 | 6.2229 | 7.3603 |
+| linear_regression | ML | 0.8075 | 2.7000 | 3.2273 |
+| decision_tree | ML | 0.9334 | 1.2425 | 1.8983 |
+| random_forest | ML | 0.9752 | 0.8392 | 1.1591 |
+| xgboost | ML | 0.9902 | 0.5441 | 0.7282 |
+| neural_network | DL | 0.9902 | 0.5352 | 0.7287 |
+| lstm | DL | 0.8481 | 2.3463 | 2.8669 |
+| gru | DL | 0.9914 | 0.4894 | 0.6811 |
+
+
+## Dataset
+Source: [Air Quality Data](https://data.nasa.gov/dataset/?tags=atmosphere)  
+Records: 539,808 rows · 1994–2021 · Western North America  
+
 
 ## Security and GitHub checklist
 
