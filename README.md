@@ -7,6 +7,10 @@ Production-ready FastAPI service for atmospheric ozone forecasting with machine 
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=flat-square)](LICENSE)
 
+<p align="center">
+  <img src="assets/ozone-hero.svg" alt="Ozone Prediction API Hero Banner" width="100%"/>
+</p>
+
 ## What this project does
 
 This API predicts ozone concentration (`ppbv`) using:
@@ -17,6 +21,16 @@ This API predicts ozone concentration (`ppbv`) using:
 - Optional natural-language explanations powered by Google Gemini
 
 It also includes a web dashboard (`index.html`, `dashboard.html`) and Docker support for deployment.
+
+## Visual workflow
+
+### Prediction pipeline (animated)
+
+![Prediction Workflow](assets/workflow-animated.svg)
+
+### MLOps lifecycle (animated)
+
+![MLOps Lifecycle](assets/mlops-lifecycle-animated.svg)
 
 ## Features
 

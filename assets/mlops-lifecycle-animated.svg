@@ -1,0 +1,62 @@
+<svg width="1200" height="360" viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Animated MLOps Lifecycle</title>
+  <desc id="desc">Animated loop for training, validation, serving, monitoring, and retraining.</desc>
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1b2a"/>
+      <stop offset="100%" stop-color="#112a1f"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <style>
+      .node { fill: rgba(15, 23, 42, 0.85); stroke: rgba(148, 163, 184, 0.45); stroke-width: 1.2; }
+      .title { font: 700 17px Segoe UI, Tahoma, Arial, sans-serif; fill: #f8fafc; }
+      .sub { font: 400 12px Segoe UI, Tahoma, Arial, sans-serif; fill: #cbd5e1; }
+      .orbit { fill: none; stroke: url(#ring); stroke-width: 3.5; stroke-dasharray: 10 8; animation: orbit 2.4s linear infinite; }
+      .indicator { fill: #22d3ee; animation: hop 2.4s linear infinite; }
+      @keyframes orbit { to { stroke-dashoffset: -36; } }
+      @keyframes hop {
+        0% { transform: translate(0px, 0px); opacity: 0.8; }
+        25% { transform: translate(250px, -80px); opacity: 1; }
+        50% { transform: translate(500px, 0px); opacity: 0.9; }
+        75% { transform: translate(250px, 80px); opacity: 1; }
+        100% { transform: translate(0px, 0px); opacity: 0.8; }
+      }
+    </style>
+  </defs>
+
+  <rect width="1200" height="360" fill="url(#bg2)"/>
+  <rect x="1" y="1" width="1198" height="358" rx="20" ry="20" fill="none" stroke="rgba(148,163,184,0.28)"/>
+
+  <text x="48" y="48" class="title" style="font-size:26px;">MLOps Feedback Loop</text>
+
+  <path class="orbit" d="M250 190 C380 70, 820 70, 950 190 C820 310, 380 310, 250 190 Z"/>
+
+  <rect x="180" y="160" width="170" height="72" rx="12" class="node"/>
+  <text x="198" y="188" class="title">Train</text>
+  <text x="198" y="206" class="sub">Build ML + DL models</text>
+
+  <rect x="430" y="78" width="180" height="72" rx="12" class="node"/>
+  <text x="448" y="106" class="title">Validate</text>
+  <text x="448" y="124" class="sub">Metrics and QA checks</text>
+
+  <rect x="690" y="78" width="180" height="72" rx="12" class="node"/>
+  <text x="708" y="106" class="title">Serve</text>
+  <text x="708" y="124" class="sub">FastAPI + Docker</text>
+
+  <rect x="930" y="160" width="170" height="72" rx="12" class="node"/>
+  <text x="948" y="188" class="title">Monitor</text>
+  <text x="948" y="206" class="sub">Latency and health</text>
+
+  <rect x="690" y="242" width="180" height="72" rx="12" class="node"/>
+  <text x="708" y="270" class="title">Drift Watch</text>
+  <text x="708" y="288" class="sub">Data and model drift</text>
+
+  <rect x="430" y="242" width="180" height="72" rx="12" class="node"/>
+  <text x="448" y="270" class="title">Retrain</text>
+  <text x="448" y="288" class="sub">Refresh model weights</text>
+
+  <circle cx="250" cy="190" r="7" class="indicator"/>
+</svg>
